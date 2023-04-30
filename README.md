@@ -1,3 +1,11 @@
+![alt text](assets/images/ai_terraformer.png "The Terraformer")
+
+[![Release](https://img.shields.io/badge/Release-v1.0.0-blue)](https://github.com/cywf/the-terraformer/releases/tag/0.1.0-alpha)
+[![OpenAI Docs](https://img.shields.io/badge/OpenAI_Docs-Visit-orange)](https://platform.openai.com/docs/introduction)
+[![Folkvarlabs](https://img.shields.io/badge/Folkvarlabs-Explore-yellow)](https://github.com/folkvarlabs/)
+[![Discord](https://img.shields.io/badge/Discord-Join-green)](https://discord.gg/YqfWpPuCpG)
+
+
 # The Terraformer
 
 The Terraformer is an open-source project that aims to streamline the process of infrastructure provisioning and management by leveraging the power of ChatGPT and AutoGPT. This project provides a ChatGPT plugin to interact with AutoGPT, which in turn provisions infrastructure using Terraform and Ansible.

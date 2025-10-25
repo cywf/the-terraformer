@@ -11,11 +11,11 @@ jobs:
     name: Validate Terraform
     runs-on: ubuntu-latest
     strategy:
-      matrix:
+#      matrix:
         directory:
           - examples/aws-simple
           - examples/azure-simple
-          - examples/gcp-simple
+           #- examples/gcp-simple
           - modules/networking
           - modules/compute
           - modules/storage

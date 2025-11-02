@@ -1,0 +1,98 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: site/package-lock.json
+
+      - name: Sync brand assets
+        run: |
+          mkdir -p site/public/images
+          cp -r assets/images/* site/public/images/ || true
+          echo "✓ Brand assets synced"
+
+      - name: Install dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Create data directories
+        working-directory: site
+        run: |
+          mkdir -p public/data public/diagrams
+          echo "✓ Data directories created"
+
+      - name: Fetch repository data
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx tsx scripts/fetch_repo_data.ts || echo "⚠ Warning: Failed to fetch repo data"
+
+      - name: Fetch discussions
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx tsx scripts/fetch_discussions.ts || echo "⚠ Warning: Failed to fetch discussions"
+
+      - name: Fetch project board data
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx tsx scripts/fetch_projects.ts || echo "⚠ Warning: Failed to fetch project data"
+
+      - name: Copy mermaid diagrams
+        run: |
+          find . -name "*.mmd" -not -path "./site/*" -not -path "./.git/*" -exec cp {} site/public/diagrams/ \; || true
+          echo "✓ Mermaid diagrams copied (if any exist)"
+
+      - name: Build site
+        working-directory: site
+        env:
+          DEPLOY_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

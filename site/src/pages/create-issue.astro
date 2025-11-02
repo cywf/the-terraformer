@@ -1,0 +1,164 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL;
+const repoUrl = 'https://github.com/cywf/the-terraformer';
+
+// Issue templates with prefilled data
+const issueTemplates = [
+  {
+    type: 'bug',
+    title: 'Report a Bug',
+    description: 'Found something that isn\'t working? Let us know!',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />`,
+    color: 'btn-error',
+    url: `${repoUrl}/issues/new?labels=bug&template=bug_report.md`,
+  },
+  {
+    type: 'feature',
+    title: 'Request a Feature',
+    description: 'Have an idea to make The Terraformer better?',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />`,
+    color: 'btn-success',
+    url: `${repoUrl}/issues/new?labels=enhancement&template=feature_request.md`,
+  },
+  {
+    type: 'docs',
+    title: 'Improve Documentation',
+    description: 'Help us make our documentation clearer and more complete.',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />`,
+    color: 'btn-info',
+    url: `${repoUrl}/issues/new?labels=documentation`,
+  },
+  {
+    type: 'question',
+    title: 'Ask a Question',
+    description: 'Need help or have questions? We\'re here to assist!',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`,
+    color: 'btn-warning',
+    url: `${repoUrl}/discussions/new?category=q-a`,
+  },
+  {
+    type: 'blank',
+    title: 'Create Custom Issue',
+    description: 'Start with a blank template for any other type of issue.',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />`,
+    color: 'btn-primary',
+    url: `${repoUrl}/issues/new/choose`,
+  },
+];
+---
+
+<Layout 
+  title="Create Issue"
+  description="Report bugs, request features, or contribute to the project"
+  showBreadcrumbs={true}
+  breadcrumbs={[{ label: 'Create Issue', href: `${baseUrl}/create-issue` }]}
+>
+  <div class="container mx-auto px-4 py-12 max-w-6xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-4">Create an Issue</h1>
+      <p class="text-xl opacity-80">
+        Choose the type of issue you'd like to create
+      </p>
+    </div>
+
+    <!-- Issue Templates Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      {issueTemplates.map((template) => (
+        <div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-all hover:scale-105">
+          <div class="card-body">
+            <div class="flex justify-center mb-4">
+              <div class="bg-base-300 p-4 rounded-full">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  class="h-12 w-12" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                  set:html={template.icon}
+                >
+                </svg>
+              </div>
+            </div>
+            <h3 class="card-title justify-center text-xl">{template.title}</h3>
+            <p class="text-center text-sm opacity-80">{template.description}</p>
+            <div class="card-actions justify-center mt-4">
+              <a 
+                href={template.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class={`btn ${template.color} btn-block`}
+              >
+                Create {template.type === 'question' ? 'Discussion' : 'Issue'}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Guidelines -->
+    <div class="bg-base-200 rounded-lg p-8">
+      <h2 class="text-2xl font-bold mb-4">Before Creating an Issue</h2>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+          <div>
+            <h3 class="font-semibold">Search Existing Issues</h3>
+            <p class="text-sm opacity-80">Check if someone has already reported the same issue or requested the same feature.</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 class="font-semibold">Provide Details</h3>
+            <p class="text-sm opacity-80">Include as much relevant information as possible. For bugs, include steps to reproduce and your environment details.</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <div>
+            <h3 class="font-semibold">Be Respectful</h3>
+            <p class="text-sm opacity-80">Follow our code of conduct and be respectful to maintainers and other community members.</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+          <div>
+            <h3 class="font-semibold">Include Code Examples</h3>
+            <p class="text-sm opacity-80">When relevant, include code snippets, configuration files, or error messages to help us understand the issue.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="mt-12 flex flex-wrap gap-4 justify-center">
+      <a href={`${repoUrl}/issues`} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+        View All Issues
+      </a>
+      <a href={`${repoUrl}/discussions`} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+        Browse Discussions
+      </a>
+      <a href={`${baseUrl}/docs`} class="btn btn-outline">
+        Read Documentation
+      </a>
+    </div>
+  </div>
+</Layout>

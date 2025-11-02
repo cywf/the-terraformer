@@ -1,0 +1,280 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL;
+
+// Sample diagrams defined inline (will be used by client-side mermaid)
+const diagrams = [
+  {
+    name: 'Architecture Overview',
+    content: `graph TB
+    User[User] -->|Interacts| ChatGPT[ChatGPT Plugin]
+    ChatGPT -->|Commands| AutoGPT[AutoGPT]
+    AutoGPT -->|Provisions| Terraform[Terraform]
+    AutoGPT -->|Configures| Ansible[Ansible]
+    Terraform -->|Creates| AWS[AWS Infrastructure]
+    Terraform -->|Creates| GCP[GCP Infrastructure]
+    Terraform -->|Creates| Azure[Azure Infrastructure]
+    Ansible -->|Configures| Servers[Servers]
+    Ansible -->|Deploys| Containers[Docker/K8s]
+    AWS -->|Network| ZeroTier[ZeroTier/WireGuard]
+    GCP -->|Network| ZeroTier
+    Azure -->|Network| ZeroTier`,
+  },
+  {
+    name: 'Deployment Flow',
+    content: `sequenceDiagram
+    participant U as User
+    participant C as ChatGPT
+    participant A as AutoGPT
+    participant T as Terraform
+    participant AN as Ansible
+    participant I as Infrastructure
+
+    U->>C: Request infrastructure
+    C->>A: Generate plan
+    A->>T: Create resources
+    T->>I: Provision infrastructure
+    I-->>T: Resources created
+    T-->>A: Success
+    A->>AN: Configure servers
+    AN->>I: Apply configurations
+    I-->>AN: Configured
+    AN-->>A: Complete
+    A-->>C: Deployment complete
+    C-->>U: Infrastructure ready`,
+  },
+  {
+    name: 'Network Topology',
+    content: `graph LR
+    Internet[Internet] --> LB[Load Balancer]
+    LB --> VPC1[VPC Region 1]
+    LB --> VPC2[VPC Region 2]
+    VPC1 --> PubSub1[Public Subnet]
+    VPC1 --> PrivSub1[Private Subnet]
+    VPC2 --> PubSub2[Public Subnet]
+    VPC2 --> PrivSub2[Private Subnet]
+    PubSub1 --> Web1[Web Servers]
+    PrivSub1 --> App1[App Servers]
+    PrivSub1 --> DB1[Database]
+    PubSub2 --> Web2[Web Servers]
+    PrivSub2 --> App2[App Servers]
+    PrivSub2 --> DB2[Database]
+    PrivSub1 -.->|ZeroTier| PrivSub2
+    DB1 -.->|Replication| DB2`,
+  },
+];
+
+const diagramsJson = JSON.stringify(diagrams);
+---
+
+<Layout 
+  title="Visualizer"
+  description="Visual diagrams and architecture representations"
+  showBreadcrumbs={true}
+  breadcrumbs={[{ label: 'Visualizer', href: `${baseUrl}/visualizer` }]}
+>
+  <div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-4">Project Visualizer</h1>
+      <p class="text-xl opacity-80">
+        Visual representations of The Terraformer architecture and workflows
+      </p>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="alert alert-info mb-8">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <div>
+        <h3 class="font-bold">Interactive Diagrams</h3>
+        <div class="text-sm">
+          These diagrams are rendered using Mermaid. You can zoom and pan on larger diagrams.
+        </div>
+      </div>
+    </div>
+
+    <!-- Diagram Selector -->
+    <div class="flex flex-wrap gap-2 mb-6" id="diagram-selector">
+      <!-- Buttons will be added by script -->
+    </div>
+
+    <!-- Diagram Container -->
+    <div class="bg-base-200 rounded-lg p-6 min-h-[400px] overflow-x-auto">
+      <div id="diagram-loading" class="flex items-center justify-center h-96">
+        <span class="loading loading-spinner loading-lg"></span>
+      </div>
+      <div id="diagram-container" class="flex justify-center items-center" style="display:none;"></div>
+      <div id="diagram-error" style="display:none;" class="alert alert-error">
+        <span>Failed to render diagram. Please check your browser console for errors.</span>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="alert alert-info mt-8">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span id="diagram-info">
+        Select a diagram to view
+      </span>
+    </div>
+
+    <!-- Documentation Link -->
+    <div class="mt-12 text-center bg-base-200 rounded-lg p-8">
+      <h2 class="text-2xl font-bold mb-4">Want to Learn More?</h2>
+      <p class="mb-6 opacity-80">
+        Check out our documentation for detailed explanations of each component.
+      </p>
+      <div class="flex gap-4 justify-center flex-wrap">
+        <a href={`${baseUrl}/docs`} class="btn btn-primary">
+          Read Documentation
+        </a>
+        <a href={`${baseUrl}/blueprints`} class="btn btn-outline">
+          View Blueprints
+        </a>
+        <a 
+          href="https://mermaid.js.org/intro/" 
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline"
+        >
+          Learn About Mermaid
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mermaid from CDN -->
+  <script type="module" define:vars={{ diagramsJson }}>
+    const diagrams = JSON.parse(diagramsJson);
+    let mermaid = null;
+    let currentDiagram = 0;
+
+    // Load mermaid from CDN
+    async function loadMermaid() {
+      try {
+        const module = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+        mermaid = module.default;
+        
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'dark',
+          themeVariables: {
+            darkMode: true,
+            primaryColor: '#7c3aed',
+            primaryTextColor: '#fff',
+            primaryBorderColor: '#db2777',
+            lineColor: '#f59e0b',
+            secondaryColor: '#db2777',
+            tertiaryColor: '#10b981',
+            background: '#0f172a',
+            mainBkg: '#1e293b',
+            secondBkg: '#334155',
+            textColor: '#e2e8f0',
+            border1: '#475569',
+            border2: '#64748b',
+            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+          },
+          securityLevel: 'loose',
+        });
+
+        renderButtons();
+        renderDiagram(0);
+      } catch (error) {
+        console.error('Failed to load mermaid:', error);
+        document.getElementById('diagram-loading').style.display = 'none';
+        document.getElementById('diagram-error').style.display = 'block';
+      }
+    }
+
+    function renderButtons() {
+      const selector = document.getElementById('diagram-selector');
+      if (!selector) return;
+
+      diagrams.forEach((diagram, index) => {
+        const button = document.createElement('button');
+        button.className = index === 0 ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+        button.textContent = diagram.name;
+        button.addEventListener('click', () => {
+          currentDiagram = index;
+          renderDiagram(index);
+          
+          // Update button states
+          selector.querySelectorAll('button').forEach((btn, idx) => {
+            if (idx === index) {
+              btn.classList.add('btn-primary');
+              btn.classList.remove('btn-outline');
+            } else {
+              btn.classList.remove('btn-primary');
+              btn.classList.add('btn-outline');
+            }
+          });
+        });
+        selector.appendChild(button);
+      });
+    }
+
+    async function renderDiagram(index) {
+      const container = document.getElementById('diagram-container');
+      const loading = document.getElementById('diagram-loading');
+      const error = document.getElementById('diagram-error');
+      const info = document.getElementById('diagram-info');
+      
+      if (!container || !mermaid) return;
+
+      try {
+        loading.style.display = 'flex';
+        container.style.display = 'none';
+        error.style.display = 'none';
+
+        const diagram = diagrams[index];
+        container.innerHTML = '';
+        
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = diagram.content;
+        container.appendChild(div);
+
+        await mermaid.run({
+          nodes: [div],
+        });
+
+        loading.style.display = 'none';
+        container.style.display = 'flex';
+        
+        if (info) {
+          info.textContent = `Viewing: ${diagram.name}`;
+        }
+      } catch (err) {
+        console.error('Failed to render diagram:', err);
+        loading.style.display = 'none';
+        error.style.display = 'block';
+        error.querySelector('span').textContent = `Failed to render ${diagrams[index].name}. ${err.message}`;
+      }
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadMermaid);
+    } else {
+      loadMermaid();
+    }
+  </script>
+
+  <style>
+    /* Ensure mermaid diagrams are visible on dark backgrounds */
+    #diagram-container .mermaid {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    #diagram-container .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</Layout>

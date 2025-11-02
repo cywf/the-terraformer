@@ -1,0 +1,176 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<Layout 
+  title="Development Board"
+  description="Project development status and task tracking"
+  showBreadcrumbs={true}
+  breadcrumbs={[{ label: 'Dev Board', href: `${baseUrl}/development-board` }]}
+>
+  <div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-4">Development Board</h1>
+      <p class="text-xl opacity-80">
+        Track the progress of features, bugs, and improvements
+      </p>
+    </div>
+
+    <!-- Board Container -->
+    <div id="board-container">
+      <!-- Loading skeleton -->
+      <div class="flex gap-4 overflow-x-auto pb-4">
+        {[...Array(3)].map(() => (
+          <div class="flex-shrink-0 w-80">
+            <div class="skeleton-loader h-96 w-full"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- View on GitHub -->
+    <div class="mt-12 text-center">
+      <a 
+        href="https://github.com/cywf/the-terraformer/projects" 
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-primary btn-lg"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+        View Full Board on GitHub
+      </a>
+    </div>
+  </div>
+
+  <script>
+    interface BoardItem {
+      title: string;
+      status: string;
+      labels: string[];
+      assignees: string[];
+      url: string;
+      number?: number;
+    }
+
+    async function loadBoard() {
+      const container = document.getElementById('board-container');
+      if (!container) return;
+
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}/data/projects.json`);
+        const data = await response.json();
+
+        // Group items by status
+        const columns: Record<string, BoardItem[]> = {
+          'Todo': [],
+          'In Progress': [],
+          'Done': [],
+        };
+
+        // If we have project data, use it
+        if (data.items && Array.isArray(data.items)) {
+          data.items.forEach((item: BoardItem) => {
+            const status = item.status || 'Todo';
+            if (columns[status]) {
+              columns[status].push(item);
+            } else {
+              columns['Todo'].push(item);
+            }
+          });
+        }
+
+        // Render Kanban board
+        let html = '<div class="flex gap-6 overflow-x-auto pb-4">';
+        
+        Object.entries(columns).forEach(([status, items]) => {
+          const statusColor = status === 'Done' ? 'badge-success' : 
+                             status === 'In Progress' ? 'badge-warning' : 
+                             'badge-info';
+          
+          html += `
+            <div class="flex-shrink-0 w-80 md:w-96">
+              <div class="bg-base-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-xl font-bold">${status}</h2>
+                  <span class="badge ${statusColor}">${items.length}</span>
+                </div>
+                <div class="space-y-3 min-h-[300px]">
+          `;
+          
+          if (items.length === 0) {
+            html += `
+              <div class="text-center py-8 opacity-60">
+                <p class="text-sm">No items</p>
+              </div>
+            `;
+          } else {
+            items.forEach(item => {
+              html += `
+                <div class="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
+                  <div class="card-body p-4">
+                    <h3 class="font-semibold text-sm mb-2">
+                      <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="link link-hover">
+                        ${item.number ? `#${item.number}` : ''} ${item.title}
+                      </a>
+                    </h3>
+                    ${item.labels && item.labels.length > 0 ? `
+                      <div class="flex flex-wrap gap-1 mb-2">
+                        ${item.labels.map(label => `
+                          <span class="badge badge-sm badge-outline">${label}</span>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                    ${item.assignees && item.assignees.length > 0 ? `
+                      <div class="flex gap-1 mt-2">
+                        ${item.assignees.map(assignee => `
+                          <div class="avatar placeholder">
+                            <div class="bg-neutral text-neutral-content rounded-full w-6">
+                              <span class="text-xs">${assignee.charAt(0).toUpperCase()}</span>
+                            </div>
+                          </div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            });
+          }
+          
+          html += `
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+      } catch (error) {
+        console.error('Failed to load project board:', error);
+        container.innerHTML = `
+          <div class="alert alert-warning shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Could not load development board. You can view the project board directly on 
+              <a href="https://github.com/cywf/the-terraformer/projects" target="_blank" rel="noopener noreferrer" class="link">GitHub</a>.
+            </span>
+          </div>
+        `;
+      }
+    }
+
+    // Load board when page is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadBoard);
+    } else {
+      loadBoard();
+    }
+  </script>
+</Layout>

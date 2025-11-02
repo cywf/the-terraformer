@@ -110,7 +110,7 @@ const commitSha = process.env.COMMIT_SHA || 'dev';
         </ul>
       </div>
       <div class="navbar-end">
-        <ThemeSwitcher client:load />
+        <ThemeSwitcher client:only="react" />
         <a 
           href="https://github.com/cywf/the-terraformer" 
           target="_blank" 

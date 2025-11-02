@@ -1,0 +1,164 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MermaidViewer from '../components/MermaidViewer';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
+const baseUrl = import.meta.env.BASE_URL;
+
+// Try to find mermaid diagrams or extract from README
+const diagrams: { name: string; content: string }[] = [];
+
+// First, try to read README and extract mermaid code blocks
+try {
+  const readmePath = join(process.cwd(), '..', 'README.md');
+  const readmeContent = await readFile(readmePath, 'utf-8');
+  
+  // Extract mermaid code blocks from README
+  const mermaidRegex = /```mermaid\n([\s\S]*?)```/g;
+  let match;
+  let index = 1;
+  
+  while ((match = mermaidRegex.exec(readmeContent)) !== null) {
+    diagrams.push({
+      name: `Diagram ${index}`,
+      content: match[1].trim(),
+    });
+    index++;
+  }
+} catch (error) {
+  console.log('No README found or no mermaid diagrams in README');
+}
+
+// If no diagrams found, create sample diagrams
+if (diagrams.length === 0) {
+  diagrams.push({
+    name: 'Architecture Overview',
+    content: `graph TB
+    User[User] -->|Interacts| ChatGPT[ChatGPT Plugin]
+    ChatGPT -->|Commands| AutoGPT[AutoGPT]
+    AutoGPT -->|Provisions| Terraform[Terraform]
+    AutoGPT -->|Configures| Ansible[Ansible]
+    Terraform -->|Creates| AWS[AWS Infrastructure]
+    Terraform -->|Creates| GCP[GCP Infrastructure]
+    Terraform -->|Creates| Azure[Azure Infrastructure]
+    Ansible -->|Configures| Servers[Servers]
+    Ansible -->|Deploys| Containers[Docker/K8s]
+    AWS -->|Network| ZeroTier[ZeroTier/WireGuard]
+    GCP -->|Network| ZeroTier
+    Azure -->|Network| ZeroTier`,
+  });
+
+  diagrams.push({
+    name: 'Deployment Flow',
+    content: `sequenceDiagram
+    participant U as User
+    participant C as ChatGPT
+    participant A as AutoGPT
+    participant T as Terraform
+    participant AN as Ansible
+    participant I as Infrastructure
+
+    U->>C: Request infrastructure
+    C->>A: Generate plan
+    A->>T: Create resources
+    T->>I: Provision infrastructure
+    I-->>T: Resources created
+    T-->>A: Success
+    A->>AN: Configure servers
+    AN->>I: Apply configurations
+    I-->>AN: Configured
+    AN-->>A: Complete
+    A-->>C: Deployment complete
+    C-->>U: Infrastructure ready`,
+  });
+
+  diagrams.push({
+    name: 'Network Topology',
+    content: `graph LR
+    Internet[Internet] --> LB[Load Balancer]
+    LB --> VPC1[VPC Region 1]
+    LB --> VPC2[VPC Region 2]
+    VPC1 --> PubSub1[Public Subnet]
+    VPC1 --> PrivSub1[Private Subnet]
+    VPC2 --> PubSub2[Public Subnet]
+    VPC2 --> PrivSub2[Private Subnet]
+    PubSub1 --> Web1[Web Servers]
+    PrivSub1 --> App1[App Servers]
+    PrivSub1 --> DB1[Database]
+    PubSub2 --> Web2[Web Servers]
+    PrivSub2 --> App2[App Servers]
+    PrivSub2 --> DB2[Database]
+    PrivSub1 -.->|ZeroTier| PrivSub2
+    DB1 -.->|Replication| DB2`,
+  });
+}
+---
+
+<Layout 
+  title="Visualizer"
+  description="Visual diagrams and architecture representations"
+  showBreadcrumbs={true}
+  breadcrumbs={[{ label: 'Visualizer', href: `${baseUrl}/visualizer` }]}
+>
+  <div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-4">Project Visualizer</h1>
+      <p class="text-xl opacity-80">
+        Visual representations of The Terraformer architecture and workflows
+      </p>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="alert alert-info mb-8">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <div>
+        <h3 class="font-bold">Interactive Diagrams</h3>
+        <div class="text-sm">
+          These diagrams are rendered using Mermaid. You can zoom and pan on larger diagrams.
+        </div>
+      </div>
+    </div>
+
+    <!-- Mermaid Viewer -->
+    <MermaidViewer diagrams={diagrams} client:load />
+
+    <!-- Documentation Link -->
+    <div class="mt-12 text-center bg-base-200 rounded-lg p-8">
+      <h2 class="text-2xl font-bold mb-4">Want to Learn More?</h2>
+      <p class="mb-6 opacity-80">
+        Check out our documentation for detailed explanations of each component.
+      </p>
+      <div class="flex gap-4 justify-center flex-wrap">
+        <a href={`${baseUrl}/docs`} class="btn btn-primary">
+          Read Documentation
+        </a>
+        <a href={`${baseUrl}/blueprints`} class="btn btn-outline">
+          View Blueprints
+        </a>
+        <a 
+          href="https://mermaid.js.org/intro/" 
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline"
+        >
+          Learn About Mermaid
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* Ensure mermaid diagrams are visible on dark backgrounds */
+  :global(.mermaid) {
+    @apply flex justify-center items-center;
+  }
+  
+  :global(.mermaid svg) {
+    @apply max-w-full h-auto;
+  }
+</style>

@@ -1,0 +1,186 @@
+---
+import '../styles/global.css';
+import ThemeSwitcher from '../components/ThemeSwitcher';
+
+interface Props {
+  title: string;
+  description?: string;
+  showBreadcrumbs?: boolean;
+  breadcrumbs?: { label: string; href: string }[];
+}
+
+const { 
+  title, 
+  description = 'The Terraformer - AI-powered infrastructure provisioning with ChatGPT, AutoGPT, Terraform, and Ansible',
+  showBreadcrumbs = false,
+  breadcrumbs = []
+} = Astro.props;
+
+const baseUrl = import.meta.env.BASE_URL;
+
+// Navigation items
+const navItems = [
+  { label: 'Home', href: `${baseUrl}/` },
+  { label: 'Blueprints', href: `${baseUrl}/blueprints` },
+  { label: 'Statistics', href: `${baseUrl}/statistics` },
+  { label: 'Discussions', href: `${baseUrl}/discussions` },
+  { label: 'Dev Board', href: `${baseUrl}/development-board` },
+  { label: 'Create Issue', href: `${baseUrl}/create-issue` },
+  { label: 'Docs', href: `${baseUrl}/docs` },
+  { label: 'Visualizer', href: `${baseUrl}/visualizer` },
+];
+
+// Get current path for active state
+const currentPath = Astro.url.pathname;
+
+// Get deployment info from environment (will be set by CI)
+const deployTimestamp = process.env.DEPLOY_TIMESTAMP || new Date().toISOString();
+const commitSha = process.env.COMMIT_SHA || 'dev';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href={`${baseUrl}/favicon.svg`} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} | The Terraformer</title>
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    
+    <!-- Theme initialization script - runs before page load -->
+    <script is:inline>
+      const THEMES = ['nightfall', 'dracula', 'cyberpunk', 'dark-neon', 'hackerman', 'gamecore', 'neon-accent'];
+      const DEFAULT_THEME = 'nightfall';
+      
+      const savedTheme = localStorage.getItem('theme');
+      const theme = savedTheme && THEMES.includes(savedTheme) ? savedTheme : DEFAULT_THEME;
+      document.documentElement.setAttribute('data-theme', theme);
+    </script>
+  </head>
+  <body>
+    <!-- Skip to content link for accessibility -->
+    <a href="#main-content" class="skip-to-content">
+      Skip to content
+    </a>
+
+    <!-- Navbar -->
+    <div class="navbar bg-base-200 shadow-lg sticky top-0 z-50">
+      <div class="navbar-start">
+        <div class="dropdown">
+          <label tabindex="0" class="btn btn-ghost lg:hidden" aria-label="Open menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-2xl bg-base-200 rounded-box w-52">
+            {navItems.map((item) => (
+              <li>
+                <a 
+                  href={item.href}
+                  class={currentPath === item.href || currentPath.startsWith(item.href + '/') ? 'active' : ''}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <a href={`${baseUrl}/`} class="btn btn-ghost normal-case text-xl">
+          <span class="font-bold text-primary">The Terraformer</span>
+        </a>
+      </div>
+      <div class="navbar-center hidden lg:flex">
+        <ul class="menu menu-horizontal px-1">
+          {navItems.map((item) => (
+            <li>
+              <a 
+                href={item.href}
+                class={currentPath === item.href || currentPath.startsWith(item.href + '/') ? 'active' : ''}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="navbar-end">
+        <ThemeSwitcher client:load />
+        <a 
+          href="https://github.com/cywf/the-terraformer" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="btn btn-ghost btn-sm"
+          aria-label="View on GitHub"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Breadcrumbs -->
+    {showBreadcrumbs && breadcrumbs.length > 0 && (
+      <div class="bg-base-200 px-4 py-2">
+        <div class="breadcrumbs-custom max-w-7xl mx-auto">
+          <ul>
+            <li><a href={`${baseUrl}/`}>Home</a></li>
+            {breadcrumbs.map((crumb) => (
+              <li><a href={crumb.href}>{crumb.label}</a></li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    )}
+
+    <!-- Main Content -->
+    <main id="main-content" class="min-h-screen">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-7xl">
+        <div class="text-left md:text-left">
+          <p class="font-semibold">The Terraformer</p>
+          <p class="text-sm opacity-70">AI-powered infrastructure provisioning</p>
+        </div>
+        <div>
+          <p class="text-sm">
+            Licensed under 
+            <a 
+              href="https://github.com/cywf/the-terraformer/blob/main/LICENSE" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="link link-primary"
+            >
+              MIT License
+            </a>
+          </p>
+        </div>
+        <div class="text-right md:text-right">
+          <p class="text-xs opacity-70">
+            Deploy: {new Date(deployTimestamp).toLocaleString()}
+          </p>
+          <p class="text-xs opacity-70">
+            Commit: <code class="text-primary">{commitSha.substring(0, 7)}</code>
+          </p>
+        </div>
+      </div>
+      <div class="mt-4">
+        <p class="text-xs opacity-50">
+          Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer" class="link">Astro</a>, 
+          <a href="https://react.dev" target="_blank" rel="noopener noreferrer" class="link">React</a>, 
+          <a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer" class="link">TailwindCSS</a>, and 
+          <a href="https://daisyui.com" target="_blank" rel="noopener noreferrer" class="link">daisyUI</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

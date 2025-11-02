@@ -1,0 +1,175 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL;
+
+// Map of blueprint details (placeholder content)
+const blueprintDetails: Record<string, any> = {
+  'vpc-subnets': {
+    title: 'VPC + Subnets (Terraform)',
+    description: 'Complete AWS VPC setup with public/private subnets',
+    content: `
+## Overview
+
+This blueprint creates a production-ready AWS VPC with:
+- Public and private subnets across multiple availability zones
+- NAT gateways for private subnet internet access
+- Route tables with proper routing configuration
+- Network ACLs for security
+
+## Prerequisites
+
+- AWS CLI configured with appropriate credentials
+- Terraform 1.0 or later
+- Basic understanding of AWS networking
+
+## Usage
+
+\`\`\`hcl
+module "vpc" {
+  source = "./modules/vpc"
+  
+  vpc_cidr = "10.0.0.0/16"
+  azs      = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  
+  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  private_subnets = ["10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
+  
+  enable_nat_gateway = true
+  single_nat_gateway = false
+  
+  tags = {
+    Environment = "production"
+    Project     = "the-terraformer"
+  }
+}
+\`\`\`
+
+## Resources Created
+
+- 1 VPC
+- 6 Subnets (3 public, 3 private)
+- 3 NAT Gateways
+- Internet Gateway
+- Route Tables
+- Security Groups
+
+## Cost Estimate
+
+Approximate monthly cost: $100-150 (primarily NAT Gateway charges)
+    `,
+  },
+  'eks-cluster': {
+    title: 'EKS/Kubernetes Cluster (Terraform)',
+    description: 'Production-ready Amazon EKS cluster',
+    content: `
+## Overview
+
+Deploy a secure, production-ready EKS cluster with managed node groups.
+
+## Features
+
+- Managed Kubernetes control plane
+- Auto-scaling node groups
+- RBAC configuration
+- CloudWatch integration
+- VPC CNI for networking
+
+## Coming Soon
+
+Full implementation and documentation in progress.
+    `,
+  },
+};
+
+// Generate static paths for all blueprints
+export function getStaticPaths() {
+  const blueprintSlugs = Object.keys(blueprintDetails);
+  return blueprintSlugs.map((slug) => ({
+    params: { slug },
+  }));
+}
+
+const blueprintSlug = Astro.params.slug || 'unknown';
+const blueprint = blueprintDetails[blueprintSlug] || {
+  title: 'Blueprint Details',
+  description: 'Blueprint information',
+  content: `
+## Coming Soon
+
+This blueprint is currently under development. Check back soon for the full implementation!
+
+In the meantime, you can:
+- Browse other [blueprints](${baseUrl}/blueprints)
+- Read our [documentation](${baseUrl}/docs)
+- [Contribute](https://github.com/cywf/the-terraformer) your own blueprints
+  `,
+};
+---
+
+<Layout 
+  title={blueprint.title}
+  description={blueprint.description}
+  showBreadcrumbs={true}
+  breadcrumbs={[
+    { label: 'Blueprints', href: `${baseUrl}/blueprints` },
+    { label: blueprint.title, href: `${baseUrl}/blueprints/${blueprintSlug}` }
+  ]}
+>
+  <div class="container mx-auto px-4 py-12 max-w-4xl">
+    <article class="prose prose-lg max-w-none">
+      <h1>{blueprint.title}</h1>
+      <p class="lead">{blueprint.description}</p>
+      
+      <div set:html={blueprint.content} class="markdown-content"></div>
+      
+      <div class="not-prose mt-12 flex gap-4">
+        <a href={`${baseUrl}/blueprints`} class="btn btn-outline">
+          ← Back to Blueprints
+        </a>
+        <a 
+          href="https://github.com/cywf/the-terraformer" 
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-primary"
+        >
+          View on GitHub
+        </a>
+      </div>
+    </article>
+  </div>
+</Layout>
+
+<style>
+  .markdown-content {
+    @apply text-base-content;
+  }
+  
+  .markdown-content h2 {
+    @apply text-2xl font-bold mt-8 mb-4;
+  }
+  
+  .markdown-content h3 {
+    @apply text-xl font-bold mt-6 mb-3;
+  }
+  
+  .markdown-content ul, .markdown-content ol {
+    @apply ml-6 my-4;
+  }
+  
+  .markdown-content li {
+    @apply mb-2;
+  }
+  
+  .markdown-content code {
+    @apply bg-base-300 px-1 py-0.5 rounded text-accent;
+  }
+  
+  .markdown-content pre {
+    @apply bg-base-300 p-4 rounded-lg overflow-x-auto my-4;
+  }
+  
+  .markdown-content pre code {
+    @apply bg-transparent p-0;
+  }
+</style>

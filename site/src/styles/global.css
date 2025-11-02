@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-base-100 text-base-content;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .skip-to-content {
+    @apply absolute -top-40 left-0 bg-primary text-primary-content px-4 py-2 z-50 focus:top-0 transition-all;
+  }
+
+  .breadcrumbs-custom {
+    @apply text-sm breadcrumbs;
+  }
+
+  /* Code highlighting for docs */
+  .prose pre {
+    @apply bg-base-300 text-base-content;
+  }
+
+  .prose code {
+    @apply bg-base-200 text-accent px-1 py-0.5 rounded;
+  }
+
+  /* Chart containers */
+  .chart-container {
+    @apply relative w-full h-64 md:h-80;
+  }
+
+  /* Card styles */
+  .blueprint-card {
+    @apply card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow;
+  }
+
+  /* Loading skeleton */
+  .skeleton-loader {
+    @apply animate-pulse bg-base-300 rounded;
+  }
+}

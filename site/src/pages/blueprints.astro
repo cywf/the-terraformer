@@ -1,0 +1,172 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BlueprintCard from '../components/BlueprintCard';
+
+const baseUrl = import.meta.env.BASE_URL;
+
+// Blueprint data - these are example patterns
+const blueprints = [
+  {
+    title: 'VPC + Subnets (Terraform)',
+    description: 'Complete AWS VPC setup with public/private subnets, route tables, and NAT gateways for secure network architecture.',
+    tags: ['Terraform', 'AWS', 'Networking', 'VPC'],
+    detailsUrl: `${baseUrl}/blueprints/vpc-subnets`,
+  },
+  {
+    title: 'EKS/Kubernetes Cluster (Terraform)',
+    description: 'Production-ready Amazon EKS cluster with node groups, RBAC, and monitoring for containerized workloads.',
+    tags: ['Terraform', 'AWS', 'Kubernetes', 'EKS'],
+    detailsUrl: `${baseUrl}/blueprints/eks-cluster`,
+  },
+  {
+    title: 'ZeroTier + WireGuard Overlay',
+    description: 'Secure overlay network combining ZeroTier for simplicity with WireGuard for high-performance VPN connections.',
+    tags: ['ZeroTier', 'WireGuard', 'VPN', 'Networking'],
+    detailsUrl: `${baseUrl}/blueprints/zerotier-wireguard`,
+  },
+  {
+    title: 'Hardened Ubuntu Baseline (Ansible)',
+    description: 'Security-hardened Ubuntu server configuration following CIS benchmarks with automated compliance checks.',
+    tags: ['Ansible', 'Security', 'Ubuntu', 'Hardening'],
+    detailsUrl: `${baseUrl}/blueprints/hardened-ubuntu`,
+  },
+  {
+    title: 'Docker Host + Compose (Ansible)',
+    description: 'Automated Docker host setup with Docker Compose, container management, and monitoring stack.',
+    tags: ['Ansible', 'Docker', 'Compose', 'Containers'],
+    detailsUrl: `${baseUrl}/blueprints/docker-compose`,
+  },
+  {
+    title: 'Multi-Cloud Load Balancer',
+    description: 'Cross-cloud load balancing solution for high availability across AWS, GCP, and Azure environments.',
+    tags: ['Terraform', 'Multi-Cloud', 'Load Balancer', 'HA'],
+    detailsUrl: `${baseUrl}/blueprints/multi-cloud-lb`,
+  },
+  {
+    title: 'GitOps CI/CD Pipeline',
+    description: 'Complete GitOps workflow with ArgoCD, GitHub Actions, and automated deployment to Kubernetes.',
+    tags: ['GitOps', 'ArgoCD', 'CI/CD', 'Kubernetes'],
+    detailsUrl: `${baseUrl}/blueprints/gitops-pipeline`,
+  },
+  {
+    title: 'Monitoring Stack (Ansible)',
+    description: 'Full observability stack with Prometheus, Grafana, Loki, and Alertmanager for comprehensive monitoring.',
+    tags: ['Ansible', 'Monitoring', 'Prometheus', 'Grafana'],
+    detailsUrl: `${baseUrl}/blueprints/monitoring-stack`,
+  },
+];
+---
+
+<Layout 
+  title="Blueprints"
+  description="Explore infrastructure blueprints and patterns for Terraform and Ansible"
+  showBreadcrumbs={true}
+  breadcrumbs={[{ label: 'Blueprints', href: `${baseUrl}/blueprints` }]}
+>
+  <div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-4">Infrastructure Blueprints</h1>
+      <p class="text-xl opacity-80 max-w-3xl mx-auto">
+        Explore our collection of battle-tested infrastructure patterns and blueprints. 
+        Each blueprint includes Terraform and Ansible code ready to deploy.
+      </p>
+    </div>
+
+    <!-- Search/Filter Section -->
+    <div class="mb-8 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div class="form-control w-full md:w-96">
+        <input 
+          type="text" 
+          placeholder="Search blueprints..." 
+          class="input input-bordered w-full"
+          id="blueprint-search"
+        />
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button class="btn btn-sm btn-primary" data-filter="all">All</button>
+        <button class="btn btn-sm btn-outline" data-filter="Terraform">Terraform</button>
+        <button class="btn btn-sm btn-outline" data-filter="Ansible">Ansible</button>
+        <button class="btn btn-sm btn-outline" data-filter="AWS">AWS</button>
+        <button class="btn btn-sm btn-outline" data-filter="Kubernetes">Kubernetes</button>
+      </div>
+    </div>
+
+    <!-- Blueprints Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="blueprints-grid">
+      {blueprints.map((blueprint) => (
+        <BlueprintCard 
+          title={blueprint.title}
+          description={blueprint.description}
+          tags={blueprint.tags}
+          detailsUrl={blueprint.detailsUrl}
+          client:load
+        />
+      ))}
+    </div>
+
+    <!-- Contribute Section -->
+    <div class="mt-16 text-center bg-base-200 rounded-lg p-8">
+      <h2 class="text-2xl font-bold mb-4">Want to Contribute?</h2>
+      <p class="mb-6 opacity-80">
+        Have a blueprint to share? We welcome community contributions!
+      </p>
+      <a 
+        href="https://github.com/cywf/the-terraformer/blob/main/CONTRIBUTING.md" 
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-primary"
+      >
+        Contribution Guidelines
+      </a>
+    </div>
+  </div>
+
+  <!-- Simple client-side filtering -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('blueprint-search') as HTMLInputElement;
+      const filterButtons = document.querySelectorAll('[data-filter]');
+      const grid = document.getElementById('blueprints-grid');
+      
+      if (!grid) return;
+      
+      const cards = Array.from(grid.children);
+      
+      // Search functionality
+      searchInput?.addEventListener('input', (e) => {
+        const query = (e.target as HTMLInputElement).value.toLowerCase();
+        cards.forEach(card => {
+          const text = card.textContent?.toLowerCase() || '';
+          (card as HTMLElement).style.display = text.includes(query) ? '' : 'none';
+        });
+      });
+      
+      // Filter functionality
+      filterButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          const filter = (e.target as HTMLElement).dataset.filter;
+          
+          // Update active button
+          filterButtons.forEach(btn => {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-outline');
+          });
+          (e.target as HTMLElement).classList.remove('btn-outline');
+          (e.target as HTMLElement).classList.add('btn-primary');
+          
+          // Filter cards
+          cards.forEach(card => {
+            const filterValue = filter || 'all';
+            if (filterValue === 'all') {
+              (card as HTMLElement).style.display = '';
+            } else {
+              const text = card.textContent || '';
+              (card as HTMLElement).style.display = text.includes(filterValue) ? '' : 'none';
+            }
+          });
+        });
+      });
+    });
+  </script>
+</Layout>

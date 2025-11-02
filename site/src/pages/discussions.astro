@@ -1,0 +1,165 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<Layout 
+  title="Discussions"
+  description="Community discussions and conversations"
+  showBreadcrumbs={true}
+  breadcrumbs={[{ label: 'Discussions', href: `${baseUrl}/discussions` }]}
+>
+  <div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-4">Community Discussions</h1>
+      <p class="text-xl opacity-80">
+        Join the conversation about infrastructure automation and The Terraformer
+      </p>
+    </div>
+
+    <!-- Search -->
+    <div class="mb-8">
+      <div class="form-control">
+        <div class="input-group">
+          <input 
+            type="text" 
+            placeholder="Search discussions..." 
+            class="input input-bordered w-full"
+            id="discussion-search"
+          />
+          <button class="btn btn-square btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discussions Container -->
+    <div id="discussions-container">
+      <!-- Loading skeleton -->
+      <div class="space-y-4">
+        {[...Array(5)].map(() => (
+          <div class="skeleton-loader h-24 w-full"></div>
+        ))}
+      </div>
+    </div>
+
+    <!-- New Discussion Button -->
+    <div class="mt-12 text-center">
+      <a 
+        href="https://github.com/cywf/the-terraformer/discussions/new" 
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-primary btn-lg"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Start a New Discussion
+      </a>
+    </div>
+  </div>
+
+  <script>
+    async function loadDiscussions() {
+      const container = document.getElementById('discussions-container');
+      if (!container) return;
+
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}/data/discussions.json`);
+        const discussions = await response.json();
+
+        if (!discussions || discussions.length === 0) {
+          container.innerHTML = `
+            <div class="alert alert-info shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>No discussions found. Be the first to start one!</span>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<div class="space-y-4" id="discussions-list">';
+        
+        discussions.forEach((discussion: any) => {
+          const categoryColor = discussion.category?.toLowerCase().includes('question') ? 'badge-info' :
+                                discussion.category?.toLowerCase().includes('idea') ? 'badge-success' :
+                                discussion.category?.toLowerCase().includes('announcement') ? 'badge-warning' :
+                                'badge-primary';
+          
+          html += `
+            <div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow discussion-item" data-title="${discussion.title.toLowerCase()}" data-category="${discussion.category?.toLowerCase() || ''}">
+              <div class="card-body">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1">
+                    <h3 class="card-title text-lg mb-2">
+                      <a href="${discussion.url}" target="_blank" rel="noopener noreferrer" class="link link-hover">
+                        ${discussion.title}
+                      </a>
+                    </h3>
+                    ${discussion.body ? `<p class="text-sm opacity-80 line-clamp-2">${discussion.body.substring(0, 150)}...</p>` : ''}
+                    <div class="flex gap-2 mt-4 items-center flex-wrap">
+                      ${discussion.category ? `<span class="badge ${categoryColor} badge-sm">${discussion.category}</span>` : ''}
+                      ${discussion.author ? `<span class="text-xs opacity-60">by ${discussion.author}</span>` : ''}
+                      ${discussion.comments ? `<span class="text-xs opacity-60">${discussion.comments} comments</span>` : ''}
+                      ${discussion.createdAt ? `<span class="text-xs opacity-60">${new Date(discussion.createdAt).toLocaleDateString()}</span>` : ''}
+                    </div>
+                  </div>
+                  <a href="${discussion.url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-ghost">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+
+        // Setup search functionality
+        const searchInput = document.getElementById('discussion-search') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            const query = (e.target as HTMLInputElement).value.toLowerCase();
+            const items = document.querySelectorAll('.discussion-item');
+            
+            items.forEach(item => {
+              const title = item.getAttribute('data-title') || '';
+              const category = item.getAttribute('data-category') || '';
+              const matches = title.includes(query) || category.includes(query);
+              (item as HTMLElement).style.display = matches ? '' : 'none';
+            });
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load discussions:', error);
+        container.innerHTML = `
+          <div class="alert alert-warning shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Could not load discussions. They may not be available yet, or you can view them directly on 
+              <a href="https://github.com/cywf/the-terraformer/discussions" target="_blank" rel="noopener noreferrer" class="link">GitHub</a>.
+            </span>
+          </div>
+        `;
+      }
+    }
+
+    // Load discussions when page is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadDiscussions);
+    } else {
+      loadDiscussions();
+    }
+  </script>
+</Layout>

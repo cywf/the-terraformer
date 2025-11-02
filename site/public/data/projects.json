@@ -1,0 +1,52 @@
+{
+  "items": [
+    {
+      "title": "Set up initial project structure",
+      "status": "Done",
+      "labels": ["setup", "documentation"],
+      "assignees": ["cywf"],
+      "url": "https://github.com/cywf/the-terraformer/issues/1",
+      "number": 1
+    },
+    {
+      "title": "Implement ChatGPT plugin integration",
+      "status": "In Progress",
+      "labels": ["enhancement", "ai"],
+      "assignees": ["cywf"],
+      "url": "https://github.com/cywf/the-terraformer/issues/2",
+      "number": 2
+    },
+    {
+      "title": "Add Terraform AWS VPC module",
+      "status": "In Progress",
+      "labels": ["terraform", "aws"],
+      "assignees": [],
+      "url": "https://github.com/cywf/the-terraformer/issues/3",
+      "number": 3
+    },
+    {
+      "title": "Create Ansible hardening playbooks",
+      "status": "Todo",
+      "labels": ["ansible", "security"],
+      "assignees": [],
+      "url": "https://github.com/cywf/the-terraformer/issues/4",
+      "number": 4
+    },
+    {
+      "title": "Add ZeroTier network integration",
+      "status": "Todo",
+      "labels": ["networking", "enhancement"],
+      "assignees": [],
+      "url": "https://github.com/cywf/the-terraformer/issues/5",
+      "number": 5
+    },
+    {
+      "title": "Improve documentation",
+      "status": "Todo",
+      "labels": ["documentation"],
+      "assignees": [],
+      "url": "https://github.com/cywf/the-terraformer/issues/6",
+      "number": 6
+    }
+  ]
+}

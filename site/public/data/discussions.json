@@ -1,0 +1,29 @@
+[
+  {
+    "title": "Welcome to The Terraformer Community!",
+    "url": "https://github.com/cywf/the-terraformer/discussions/1",
+    "body": "This is a place to discuss The Terraformer project, share ideas, and collaborate on infrastructure automation.",
+    "category": "Announcements",
+    "author": "cywf",
+    "comments": 5,
+    "createdAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "title": "Best practices for Terraform modules?",
+    "url": "https://github.com/cywf/the-terraformer/discussions/2",
+    "body": "I'm looking for advice on structuring Terraform modules for multi-cloud deployments. What approaches have worked well for you?",
+    "category": "Q&A",
+    "author": "developer123",
+    "comments": 12,
+    "createdAt": "2024-01-20T14:30:00Z"
+  },
+  {
+    "title": "Feature Idea: Multi-region disaster recovery",
+    "url": "https://github.com/cywf/the-terraformer/discussions/3",
+    "body": "It would be great to have built-in support for multi-region DR scenarios with automated failover.",
+    "category": "Ideas",
+    "author": "cloudarchitect",
+    "comments": 8,
+    "createdAt": "2024-02-01T09:15:00Z"
+  }
+]
